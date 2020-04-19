@@ -39,6 +39,11 @@ const productSchema = new mongoose.Schema(
         shipping: {
             required: false,
             type: Boolean
+        },
+        farmer: {
+            type: ObjectId,
+            ref: "User",
+            required: true
         }
     },
     { timestamps: true }

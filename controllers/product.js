@@ -5,7 +5,9 @@ const Product = require("../models/product");
 const { errorHandler } = require("../helpers/dbErrorHandler");
 
 exports.productById = (req, res, next, id) => {
-    Product.findById(id).exec((err , product) => {
+    Product.findById(id)
+    .populate('category')
+    .exec((err , product) => {
         if(err || !product){
             return res.status(400).json({
                 error: "Product not found"
@@ -32,9 +34,9 @@ exports.create = (req, res) => {
         }
 
         //check for all field
-        const { name, description, price, category, quantity, shipping} = fields
+        const { name, description, price, category, quantity, shipping, farmer} = fields
 
-        if(!name || !description || !price || !category || !quantity || !shipping){
+        if(!name || !description || !price || !category || !quantity || !shipping || !farmer){
             return res.status(400).json({
                 error: "ALL fields are required"
             });
@@ -46,7 +48,6 @@ exports.create = (req, res) => {
         //1mb = 1000000
 
         if (files.photo) {
-            //console.log('FILES PHOTO: ', files.photo);
             if(files.photo.size > 1000000){
                 return res.status(400).json({
                     error: "Image should be less than 1 mb in size"
@@ -58,6 +59,7 @@ exports.create = (req, res) => {
 
         product.save((err, result) => {
             if (err) {
+                console.log(product)
                 return res.status(400).json({
                     error:errorHandler(err)
                 });
@@ -153,6 +155,7 @@ exports.update = (req, res) => {
     Product.find()
         .select("-photo")
         .populate('category')
+        .populate('farmer')
         .sort([[sortBy, order]])
         .limit(limit)
         .exec((err, products) => {
@@ -235,6 +238,7 @@ exports.listBySearch = (req, res) => {
     Product.find(findArgs)
         .select("-photo")
         .populate("category")
+        .populate("farmer")
         .sort([[sortBy, order]])
         .skip(skip)
         .limit(limit)
@@ -257,4 +261,27 @@ exports.photo = (req, res, next) => {
         return res.send(req.product.photo.data);
     }
     next();
+};
+
+exports.listSearch = (req, res) => {
+    // create query object to hold search value and category value
+    const query = {};
+    // assign search value to query.name
+    if (req.query.search) {
+        query.name = { $regex: req.query.search, $options: "i" };
+        // assigne category value to query.category
+        if (req.query.category && req.query.category != "All") {
+            query.category = req.query.category;
+        }
+        // find the product based on query object with 2 properties
+        // search and category
+        Product.find(query, (err, products) => {
+            if (err) {
+                return res.status(400).json({
+                    error: errorHandler(err)
+                });
+            }
+            res.json(products);
+        }).select("-photo");
+    }
 };
