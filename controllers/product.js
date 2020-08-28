@@ -3,10 +3,12 @@ const _ = require("lodash");
 const fs = require("fs");
 const Product = require("../models/product");
 const { errorHandler } = require("../helpers/dbErrorHandler");
+const { mongo } = require("mongoose");
 
 exports.productById = (req, res, next, id) => {
     Product.findById(id)
     .populate('category')
+    .populate('farmer')
     .exec((err , product) => {
         if(err || !product){
             return res.status(400).json({
@@ -32,7 +34,6 @@ exports.create = (req, res) => {
                 error: "Image could not be uploaded"
             });
         }
-
         //check for all field
         const { name, description, price, category, quantity, shipping, farmer} = fields
 
@@ -41,12 +42,9 @@ exports.create = (req, res) => {
                 error: "ALL fields are required"
             });
         }
-
         let product = new Product(fields);
-
         //1kb = 1000
         //1mb = 1000000
-
         if (files.photo) {
             if(files.photo.size > 1000000){
                 return res.status(400).json({
@@ -56,7 +54,6 @@ exports.create = (req, res) => {
             product.photo.data = fs.readFileSync(files.photo.path);
             product.photo.contentType = files.photo.type;
         }
-
         product.save((err, result) => {
             if (err) {
                 console.log(product)
@@ -285,3 +282,57 @@ exports.listSearch = (req, res) => {
         }).select("-photo");
     }
 };
+
+exports.decreaseQuantity = (req, res, next) => {
+    let bulkOps = req.body.order.products.map(item => {
+        return {
+            updateOne: {
+                filter: { _id: item._id },
+                update: { $inc: { quantity: -item.count, sold: +item.count } }
+            }
+        };
+    });
+
+    Product.bulkWrite(bulkOps, {}, (error, products) => {
+        if (error) {
+            return res.status(400).json({
+                error: "Could not update product"
+            });
+        }
+        next();
+    });
+};
+
+exports.listAllByfarmer = (req, res) => {
+    let order  = req.query.order  ? req.query.order  : 'asc'
+    let sortBy = req.query.sortBy ? req.query.sortBy : '_id'
+    // let limit  = req.query.limit  ? parseInt(req.query.limit)  : 6
+
+    console.log(req.body.userId)
+    // Product.find({"farmer":req.body.userId})
+    var o_id = new mongo.ObjectID(req.body.userId)
+    Product.find({'farmer': o_id})
+        .select("-photo")
+        .populate('category')
+        .populate('farmer')
+        .sort([[sortBy, order]])
+        // .limit(limit)
+        .exec((err, products) => {
+            if(err){
+                return res.status(400).json({
+                    error: 'Product not found'
+            });
+        }
+        res.json(products);
+        // console.log(products)
+    });
+}
+
+exports.removeByfarmer =  (req, res) => {
+
+}
+
+exports.updateByfarmer =  (req, res) => {
+
+}
+
