@@ -21,9 +21,6 @@ exports.create = (req, res) => {
                     error: errorHandler(error)
                 });
             }
-            // else{
-            //     console.log(data)
-            // }
         });
     }
     order.save((error, data) => {
@@ -54,23 +51,6 @@ exports.listOrdersFarmer = (req, res) => {
             res.json(OrderData)
         })    
 } 
-
-// exports.listOrders = (req, res, farmerId) => {
-//     const farmer = req.body.farmerId
-//     console.log(req.body)
-//     Order.find()
-//         .populate("user", "_id name address")
-//         .populate("farmer")
-//         .sort("-created")
-//         .exec((err, orders) => {
-//             if (err) {
-//                 return res.status(400).json({
-//                     error: errorHandler(error)
-//                 });
-//             }
-//             res.json(orders);
-//         });
-// };
 
 exports.getStatusValues = (req, res) => {
     res.json(Order.schema.path('status').enumValues)

@@ -43,7 +43,7 @@ router.param("productId", productById);
 //Manage Product
 router.post("/productsFarmer/:userId" , listAllByfarmer);
 router.delete("/product/:productId/:userId", requireSignin, isAuth, isAdmin, removeByfarmer);
-router.put("/product/:productId/:userId", requireSignin, isAuth, isAdmin, updateByfarmer);
+// router.put("/product/:productId/:userId", requireSignin, isAuth, isAdmin, updateByfarmer);
 
 
 module.exports = router;

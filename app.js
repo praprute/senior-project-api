@@ -5,10 +5,8 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const validator = require('express-validator');
 const cors = require('cors');
-
 const { Order } = require("./models/order")
 require('dotenv').config()
-
 //import routes
 const authRoutes = require('./authRoutes/auth');
 const userRoutes = require('./authRoutes/user');
@@ -17,9 +15,7 @@ const productRoutes = require('./authRoutes/product');
 const braintreeRoutes = require('./authRoutes/braintree');
 const orderRoutes = require('./authRoutes/order');
 const iotRouter = require('./authRoutes/iot');
-//app
 const app = express()
-
 //db
 mongoose.connect(process.env.DATABASE, {
     useNewUrlParser:true,
@@ -27,14 +23,12 @@ mongoose.connect(process.env.DATABASE, {
 }).then(() => {
     console.log('DB Connect')
 })
-
 //middleware
 app.use(morgan('dev'));
 app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(validator());
 app.use(cors());
-
 //routes middleware
 app.use('/api', authRoutes);
 app.use('/api', userRoutes);
@@ -49,5 +43,4 @@ const port = process.env.PORT || 8000
 app.listen(port, () => {
     console.log(`Server is running on portg ${port}`);
 })
-
 

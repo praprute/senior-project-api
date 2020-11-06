@@ -3,9 +3,6 @@ const { errorHandler } = require("../helpers/dbErrorHandler");
 const { mongo } = require("mongoose");
 
 exports.saveTemp = (req, res) => {
-    // console.log(req)
-    console.log('---------------------------------------')
-    console.log(req.body)
     const valueSensor = new Sensor(req.body)
     valueSensor.save((error, data) => {
         if (error) {
@@ -14,16 +11,17 @@ exports.saveTemp = (req, res) => {
             });
         }else{
             res.json(data)
+            console.log(data)
         }
     })
 }
 
 exports.readTemp = (req, res) => {
-    console.log(req.body.productId)
     var o_id = new mongo.ObjectID(req.body.productId)
     Sensor.find({'product': o_id})
         .populate('category')
         .populate('farmer')
+        .limit(20)
         .sort({"createdAt": -1})
         .exec((err, data) => {
             if(err){
@@ -33,5 +31,24 @@ exports.readTemp = (req, res) => {
             }
             res.json(data)
         })
-    // var productId = new mongo.ObjectID()
 }
+
+exports.readTempRealTime = (req, res) => {
+    console.log('req.body')
+    console.log(req.body)
+    var o_id = new mongo.ObjectID(req.body.id)
+    Sensor.find({'product': o_id})
+        .populate('category')
+        .populate('farmer')
+        .limit(1)
+        .sort({"createdAt": -1})
+        .exec((err, data) => {
+            if(err){
+                return res.status(400).json({
+                    error: 'Data error.'
+                });
+            }
+            res.json(data)
+        })
+}
+
